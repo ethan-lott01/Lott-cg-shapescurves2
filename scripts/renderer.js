@@ -52,11 +52,21 @@ class Renderer {
         // TODO: draw at least 2 Bezier curves
         //   - variable `this.num_curve_sections` should be used for `num_edges`
         //   - variable `this.show_points` should be used to determine whether or not to render vertices
+
+        // Coordinates for first curve
+        let p0first = {x: 100, y: 100};
+        let p1first = {x: 200, y: 50};
+        let p2first = {x: 300, y: 150};
+        let p3first = {x: 400, y: 100};
+
+        // Coordinates for second curve
+        let p0second = {x: 200, y: 500};
+        let p1second = {x: 400, y: 250};
+        let p2second = {x: 600, y: 450};
+        let p3second = {x: 700, y: 300};
         
-        
-        // Following line is example of drawing a single line
-        // (this should be removed after you implement the curve)
-        this.drawLine({x: 100, y: 100}, {x: 600, y: 300}, [255, 0, 0, 255], framebuffer);
+        this.drawBezierCurve(p0first, p1first, p2first, p3first, this.num_curve_sections, [255, 0, 0, 255], framebuffer);
+        this.drawBezierCurve(p0second, p1second, p2second, p3second, this.num_curve_sections, [0, 0, 255, 255], framebuffer);
     }
 
     // framebuffer:  canvas ctx image data
@@ -64,8 +74,19 @@ class Renderer {
         // TODO: draw at least 2 circles
         //   - variable `this.num_curve_sections` should be used for `num_edges`
         //   - variable `this.show_points` should be used to determine whether or not to render vertices
-        
-        
+
+        // Parameters for first circle
+        let center1 = {x:200, y: 200};
+        let radius1 = 50;
+        let color1 = [255, 0, 0, 255];
+
+        // Parameters for second circle
+        let center2 = {x:600, y: 350};
+        let radius2 = 150;
+        let color2 = [0, 0, 255, 255];
+
+        this.drawCircle(center1, radius1, this.num_curve_sections, color1, framebuffer);
+        this.drawCircle(center2, radius2, this.num_curve_sections, color2, framebuffer);
     }
 
     // framebuffer:  canvas ctx image data
@@ -73,13 +94,14 @@ class Renderer {
         // TODO: draw at least 2 convex polygons (each with a different number of vertices >= 5)
         //   - variable `this.show_points` should be used to determine whether or not to render vertices
         
-        
-        // Following lines are example of drawing a single triangle
-        // (this should be removed after you implement the polygon)
-        let point_a = {x:  80, y:  40};
-        let point_b = {x: 320, y: 160};
-        let point_c = {x: 240, y: 360};
-        this.drawTriangle(point_a, point_c, point_b, [0, 128, 128, 255], framebuffer);
+        // Define vertices for first convex polygon
+        let vertices1 = [{x: 100, y: 100}, {x: 200, y: 150}, {x: 250, y: 200}, {x: 150, y: 250}];
+
+        // Define vertices for second convex polygon
+        let vertices2 = [{x: 300, y: 250}, {x: 400, y: 500}, {x: 475, y: 400}, {x: 250, y: 350}];
+
+        this.drawConvexPolygon(vertices1, [255, 0, 0, 255], framebuffer);
+        this.drawConvexPolygon(vertices2, [0, 0, 255, 255], framebuffer);
     }
 
     // framebuffer:  canvas ctx image data
@@ -99,9 +121,30 @@ class Renderer {
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
     drawBezierCurve(p0, p1, p2, p3, num_edges, color, framebuffer) {
-        // TODO: draw a sequence of straight lines to approximate a Bezier curve
-        
-        
+        // Calculate step size for t
+        let step = 1 / num_edges;
+
+        // Initialize previous point variable
+        let previous;
+
+        // Iterate over the curve in segments
+        for (let t = 0; t <= 1; t += step) {
+            // Calculate coordinates of current point
+            let c0 = (1 - t) ** 3;
+            let c1 = 3 * t * ((1 - t) ** 2);
+            let c2 = 3 * (t ** 2) * (1 - t);
+            let c3 = t ** 3;
+            let x = Math.round(p0.x * c0 + p1.x * c1 + p2.x * c2 + p3.x * c3);
+            let y = Math.round(p0.y * c0 + p1.y * c1 + p2.y * c2 + p3.y * c3);
+
+            // Connect line from previous point to current point
+            if (previous) {
+                this.drawLine(previous, {x: x, y: y}, color, framebuffer)
+            }
+
+            // Update previous point
+            previous = {x: x, y: y}
+        }
     }
 
     // center:       object {x: __, y: __}
@@ -110,16 +153,55 @@ class Renderer {
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
     drawCircle(center, radius, num_edges, color, framebuffer) {
-        // TODO: draw a sequence of straight lines to approximate a circle
-        
-        
+        // Initialize center coordinates
+        let center_x = center.x;
+        let center_y = center.y;
+
+        // Calculate the step size of the angle
+        let step = (2 * Math.PI) / num_edges;
+
+        // Initialize the first and previous point
+        let first;
+        let previous;
+
+        // Iterate over each side
+        for (let i = 0; i < num_edges; i++) {
+            // Calculate the current side's angle
+            let angle = i * step;
+
+            // Calculate the x and y coordinates of the current point
+            let x = Math.round(center_x + radius * Math.cos(angle));
+            let y = Math.round(center_y + radius * Math.sin(angle));
+
+            // Save first ponit or connect line from previous point to current point
+            if (i === 0) {
+                first = {x: x, y: y};
+            } else {
+                this.drawLine(previous, {x: x, y: y}, color, framebuffer);
+            }
+
+            // Update previous point
+            previous = {x: x, y: y};
+        }
+
+        // Draw final line segment to close the circle
+        this.drawLine(previous, first, color, framebuffer);
     }
     
     // vertex_list:  array of object [{x: __, y: __}, {x: __, y: __}, ..., {x: __, y: __}]
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
     drawConvexPolygon(vertex_list, color, framebuffer) {
-        // TODO: draw a sequence of triangles to form a convex polygon
+        // Iterate over each vertex in the list
+        for (let i = 1; i < vertex_list.length - 1; i++) {
+            // Define the vertices of the current triangle
+            let v0 = vertex_list[0];
+            let v1 = vertex_list[i];
+            let v2 = vertex_list[i + 1];
+
+            // Draw current triangle
+            this.drawTriangle(v0, v1, v2, color, framebuffer);
+        }
         
         
     }
@@ -128,9 +210,20 @@ class Renderer {
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
     drawVertex(v, color, framebuffer) {
-        // TODO: draw some symbol (e.g. small rectangle, two lines forming an X, ...) centered at position `v`
-        
-        
+        // Define the pixel size of a cross symbol
+        const size = 3;
+
+        // Calculate coordinates for the start and end points of the lines
+        let x0 = Math.round(v.x - size / 2);
+        let x1 = Math.round(v.x + size / 2);
+        let y0 = Math.round(v.y - size / 2);
+        let y1 = Math.round(v.y + size / 2);
+
+        // Draw vertical line
+        this.drawLine({x: v.x, y: y0}, {x: v.x, y: y1}, color, framebuffer);
+
+        // Draw horizontal line
+        this.drawLine({x: x0, y: v.y}, {x: x1, y: v.y}, color, framebuffer);
     }
     
     /***************************************************************
