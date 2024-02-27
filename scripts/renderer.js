@@ -64,6 +64,14 @@ class Renderer {
         let p1second = {x: 400, y: 250};
         let p2second = {x: 600, y: 450};
         let p3second = {x: 700, y: 300};
+
+        if (this.show_points) {
+            // Draw the control points
+            this.drawVertex(p1first, [0, 255, 255, 255], framebuffer);
+            this.drawVertex(p2first, [0, 255, 255, 255], framebuffer);
+            this.drawVertex(p1second, [255, 0, 255, 255], framebuffer);
+            this.drawVertex(p2second, [255, 0, 255, 255], framebuffer);
+        }
         
         this.drawBezierCurve(p0first, p1first, p2first, p3first, this.num_curve_sections, [255, 0, 0, 255], framebuffer);
         this.drawBezierCurve(p0second, p1second, p2second, p3second, this.num_curve_sections, [0, 0, 255, 255], framebuffer);
@@ -100,8 +108,20 @@ class Renderer {
         // Define vertices for second convex polygon
         let vertices2 = [{x: 300, y: 250}, {x: 400, y: 500}, {x: 475, y: 400}, {x: 250, y: 350}];
 
+        // Draw the convex polygons
         this.drawConvexPolygon(vertices1, [255, 0, 0, 255], framebuffer);
         this.drawConvexPolygon(vertices2, [0, 0, 255, 255], framebuffer);
+
+        // Draw points if this.show_points is true
+        if (this.show_points) {
+            for (let i = 0; i < vertices1.length; i++) {
+                this.drawVertex({x: vertices1[i].x, y: vertices1[i].y}, [0, 0, 255, 255], framebuffer);
+            }
+    
+            for (let i = 0; i < vertices2.length; i++) {
+                this.drawVertex({x: vertices2[i].x, y: vertices2[i].y}, [255, 0, 0, 255], framebuffer);
+            }
+        }
     }
 
     // framebuffer:  canvas ctx image data
@@ -110,7 +130,69 @@ class Renderer {
         //   - variable `this.num_curve_sections` should be used for `num_edges`
         //   - variable `this.show_points` should be used to determine whether or not to render vertices
         
+        // Define points of the letter "L"
+        let L = [{x: 50, y: 100}, {x: 50, y: 300}, {x: 100, y: 300}, {x: 100, y: 150}, {x: 200, y: 150}];
         
+        // Draw the "L"
+        this.drawConvexPolygon(L, [255, 0, 0, 255], framebuffer);
+        if (this.show_points) {
+            // L
+            for (let i = 0; i < L.length; i++) {
+                this.drawVertex({x: L[i].x, y: L[i].y}, [0, 0, 255, 255], framebuffer);
+            }
+
+            // Vertical "tt"
+            this.drawVertex({x: 450, y: 125}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 450, y: 300}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 550, y: 125}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 550, y: 300}, [0, 0, 255, 255], framebuffer);
+
+            // Horizontal "tt"
+            this.drawVertex({x: 410, y: 250}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 490, y: 250}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 590, y: 250}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 510, y: 250}, [0, 0, 255, 255], framebuffer);
+
+            // Curve control points
+            this.drawVertex({x: 450, y: 90}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 460, y: 90}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 550, y: 90}, [0, 0, 255, 255], framebuffer);
+            this.drawVertex({x: 560, y: 90}, [0, 0, 255, 255], framebuffer);
+        }
+
+        // Define parameters for "O" circle
+        let center = {x:300, y: 200};
+        let radius = 85;
+        let color = [255, 0, 0, 255];
+
+        // Draw the "O"
+        this.drawCircle(center, radius, this.num_curve_sections, color, framebuffer);
+
+        // Draw straight vertical lines of "tt"
+        this.drawLine({x: 450, y: 125}, {x: 450, y: 300}, color, framebuffer);
+        this.drawLine({x: 550, y: 125}, {x: 550, y: 300}, color, framebuffer);
+
+        // Draw the straight horizontal lines of "tt"
+        this.drawLine({x: 410, y: 250}, {x: 490, y: 250}, color, framebuffer);
+        this.drawLine({x: 590, y: 250}, {x: 510, y: 250}, color, framebuffer);
+
+        // Coordinates for first curve
+        let p0first = {x: 450, y: 125};
+        let p1first = {x: 450, y: 90};
+        let p2first = {x: 460, y: 90};
+        let p3first = {x: 500, y: 100};
+
+        // Coordinates for second curve
+        let p0second = {x: 550, y: 125};
+        let p1second = {x: 550, y: 90};
+        let p2second = {x: 560, y: 90};
+        let p3second = {x: 600, y: 100};
+
+        // Draw the curves on the bottom of "tt"
+        this.drawBezierCurve(p0first, p1first, p2first, p3first, this.num_curve_sections, [255, 0, 0, 255], framebuffer);
+        this.drawBezierCurve(p0second, p1second, p2second, p3second, this.num_curve_sections, [255, 0, , 255], framebuffer);
+
+
     }
 
     // p0:           object {x: __, y: __}
@@ -136,6 +218,11 @@ class Renderer {
             let c3 = t ** 3;
             let x = Math.round(p0.x * c0 + p1.x * c1 + p2.x * c2 + p3.x * c3);
             let y = Math.round(p0.y * c0 + p1.y * c1 + p2.y * c2 + p3.y * c3);
+
+            // Draw points if this.show_points is true
+            if (this.show_points) {
+                this.drawVertex({x: x, y: y}, color, framebuffer);
+            }
 
             // Connect line from previous point to current point
             if (previous) {
@@ -173,6 +260,11 @@ class Renderer {
             let x = Math.round(center_x + radius * Math.cos(angle));
             let y = Math.round(center_y + radius * Math.sin(angle));
 
+            // Draw points if this.show_points is true
+            if (this.show_points) {
+                this.drawVertex({x: x, y: y}, color, framebuffer);
+            }
+
             // Save first ponit or connect line from previous point to current point
             if (i === 0) {
                 first = {x: x, y: y};
@@ -202,8 +294,6 @@ class Renderer {
             // Draw current triangle
             this.drawTriangle(v0, v1, v2, color, framebuffer);
         }
-        
-        
     }
     
     // v:            object {x: __, y: __}
@@ -211,7 +301,7 @@ class Renderer {
     // framebuffer:  canvas ctx image data
     drawVertex(v, color, framebuffer) {
         // Define the pixel size of a cross symbol
-        const size = 3;
+        const size = 15;
 
         // Calculate coordinates for the start and end points of the lines
         let x0 = Math.round(v.x - size / 2);
